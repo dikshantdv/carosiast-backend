@@ -1,9 +1,59 @@
 const Car = require("../models/carModel");
+const Company = require("../models/companyModel");
+const APIFeatures = require("../utils/apiFeatures");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
-const handlerFactory = require("./handlerFactory");
 
-exports.getAllCars = handlerFactory.getAll(Car);
+exports.setCarId = catchAsync(async (req, res, next) => {
+  if (req.params.carName) {
+    const car = await Company.findOne({ slug: req.params.carName }).select(
+      "-__v"
+    );
+    // Allow nested routes
+    if (!req.body.car) {
+      req.query.car = car._id;
+      req.body.fullCar = car;
+    }
+  }
+  next();
+});
+
+exports.getAllCars = catchAsync(async (req, res, next) => {
+  let query = Car.find();
+  let variantFilter = {};
+  const excludedFields = ["price", "mileage", "transmission", "fuel"];
+  excludedFields.forEach((el) => {
+    if (req.query[el]) {
+      variantFilter[el] = req.query[el];
+      delete req.query[el];
+    }
+  });
+  // 1B) Advanced filtering
+  let queryStr = JSON.stringify(variantFilter);
+  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+  queryStr = JSON.parse(queryStr);
+  console.log(queryStr);
+  query = query.populate({
+    path: "variants",
+    select: "name price",
+    match: queryStr,
+  });
+  const features = new APIFeatures(query, req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  let doc = await features.query;
+  // doc = doc.filter((car) => car.variants.length > 0);
+
+  res.status(200).json({
+    status: "success",
+    results: doc.length,
+    data: {
+      data: doc,
+    },
+  });
+});
 
 exports.createCar = catchAsync(async (req, res, next) => {
   const newCar = await Car.create(req.body);

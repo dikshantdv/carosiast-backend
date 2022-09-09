@@ -1,7 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const carRouter = require("./routes/carRoute");
-const variantRouter = require("./routes/variantRoute");
+const companyRouter = require("./routes/companyRoute");
 
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
@@ -13,8 +13,8 @@ app.use(morgan("dev"));
 app.use(express.json({ limit: "10kb" }));
 
 // // 3) ROUTES
+app.use("/companies", companyRouter);
 app.use("/cars", carRouter);
-app.use("/variants", variantRouter);
 // app.use("/api/v1/users", userRouter);
 // app.use("/api/v1/reviews", reviewRouter);
 

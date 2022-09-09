@@ -5,7 +5,6 @@ const router = express.Router({ mergeParams: true });
 
 router
   .route("/")
-  .get(variantController.setCarId, variantController.getAllVariants)
   .post(variantController.setCarId, variantController.createVariant);
 router
   .route("/:variantName")

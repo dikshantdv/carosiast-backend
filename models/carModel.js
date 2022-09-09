@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
-
-const { priceAbbr } = require("../utils/priceAbbr");
+const Company = require("./companyModel");
 
 const carSchema = new mongoose.Schema(
   {
@@ -13,18 +12,9 @@ const carSchema = new mongoose.Schema(
       maxlength: [40, "A car name must have less or equal then 40 characters"],
       minlength: [1, "A car name must have more or equal then 1 characters"],
     },
-    company: {
-      type: String,
-      required: [true, "A Car must have a company"],
-      trim: true,
-      maxlength: [
-        40,
-        "A company name must have less or equal then 40 characters",
-      ],
-      minlength: [
-        1,
-        "A company name must have more or equal then 1 characters",
-      ],
+    companyName: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Company",
     },
     slug: String,
     minPrice: { type: Number, required: true, default: 0 },
@@ -36,10 +26,6 @@ const carSchema = new mongoose.Schema(
   }
 );
 
-carSchema.virtual("abbrPrice").get(function () {
-  return priceAbbr(this.price);
-});
-
 // Virtual populate
 carSchema.virtual("variants", {
   ref: "Variant",
@@ -49,42 +35,27 @@ carSchema.virtual("variants", {
 
 // DOCUMENT MIDDLEWARE: runs before .save() and .create()
 carSchema.pre("save", function (next) {
-  this.slug = slugify(`${this.company} ${this.name}`, { lower: true });
+  this.slug = slugify(`${this.companyName} ${this.name}`, { lower: true });
   next();
 });
 
-// tourSchema.pre('save', async function(next) {
-//   const guidesPromises = this.guides.map(async id => await User.findById(id));
-//   this.guides = await Promise.all(guidesPromises);
-//   next();
-// });
+carSchema.pre(/^find/, function (next) {
+  this.select("-__v");
+  next();
+});
 
-// QUERY MIDDLEWARE
-// tourSchema.pre('find', function(next) {
-// tourSchema.pre(/^find/, function (next) {
-//   this.find({ secretTour: { $ne: true } });
+carSchema.statics.addToCompany = async function (companyName, carId) {
+  const company = await Company.findOne({
+    slug: slugify(companyName, { lower: true }),
+  });
+  await Company.findByIdAndUpdate(company._id, {
+    $push: { cars: carId },
+  });
+};
 
-//   this.start = Date.now();
-//   next();
-// });
-
-// carSchema.pre(/^find/, function (next) {
-//   this.select("-__v");
-//   next();
-// });
-
-// tourSchema.post(/^find/, function (docs, next) {
-//   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
-//   next();
-// });
-
-// AGGREGATION MIDDLEWARE
-// tourSchema.pre('aggregate', function(next) {
-//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-
-//   console.log(this.pipeline());
-//   next();
-// });
+carSchema.post("save", function () {
+  this.constructor.addToCompany(this.companyName, this._id);
+});
 
 const Car = mongoose.model("Car", carSchema);
 
