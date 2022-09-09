@@ -31,6 +31,7 @@ const companySchema = new mongoose.Schema(
 
 companySchema.pre("save", function (next) {
   this.slug = slugify(`${this.name}`, { lower: true });
+  console.log(this);
   next();
 });
 

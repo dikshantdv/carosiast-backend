@@ -4,22 +4,28 @@ const APIFeatures = require("../utils/apiFeatures");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
-exports.setCarId = catchAsync(async (req, res, next) => {
-  if (req.params.carName) {
-    const car = await Company.findOne({ slug: req.params.carName }).select(
-      "-__v"
-    );
-    // Allow nested routes
-    if (!req.body.car) {
-      req.query.car = car._id;
-      req.body.fullCar = car;
+exports.setCompanyId = catchAsync(async (req, res, next) => {
+  if (req.params.companyName) {
+    const company = await Company.findOne({
+      slug: req.params.companyName,
+    }).select("-__v");
+    if (!company) {
+      return next(new AppError("No company found with that name", 404));
+    }
+
+    if (!req.body.companyName) {
+      // Allow nested routes
+      req.query.companyName = company._id;
+      req.body.fullCompany = company;
     }
   }
   next();
 });
 
 exports.getAllCars = catchAsync(async (req, res, next) => {
-  let query = Car.find();
+  filter = {};
+  if (req.query.companyName) filter = { companyName: req.query.companyName };
+  let query = Car.find(filter);
   let variantFilter = {};
   const excludedFields = ["price", "mileage", "transmission", "fuel"];
   excludedFields.forEach((el) => {
@@ -56,7 +62,10 @@ exports.getAllCars = catchAsync(async (req, res, next) => {
 });
 
 exports.createCar = catchAsync(async (req, res, next) => {
-  const newCar = await Car.create(req.body);
+  const newCar = await Car.create({
+    ...req.body,
+    companyName: req.query.companyName,
+  });
 
   res.status(201).json({
     status: "success",

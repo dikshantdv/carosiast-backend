@@ -11,6 +11,6 @@ router
   .route("/")
   .get(companyController.getAllCompanies)
   .post(companyController.createCompany);
-router.route("/:carName").get(companyController.getOneCompany);
+router.route("/:companyName").get(companyController.getOneCompany);
 
 module.exports = router;

@@ -19,16 +19,13 @@ exports.setCompanyId = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllShowrooms = catchAsync(async (req, res, next) => {
-  // To allow for nested GET reviews on tour (hack)
-
-  let query = Showroom.find();
+  let query = Showroom.find({ company: req.query.company });
   const features = new APIFeatures(query, req.query)
     .filter()
     .sort()
     .limitFields()
     .paginate();
   const doc = await features.query;
-
   res.status(200).json({
     status: "success",
     results: doc.length,

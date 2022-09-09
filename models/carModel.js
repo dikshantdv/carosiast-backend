@@ -15,6 +15,7 @@ const carSchema = new mongoose.Schema(
     companyName: {
       type: mongoose.Schema.ObjectId,
       ref: "Company",
+      required: [true, "A car must have a company"],
     },
     slug: String,
     minPrice: { type: Number, required: true, default: 0 },
@@ -35,7 +36,7 @@ carSchema.virtual("variants", {
 
 // DOCUMENT MIDDLEWARE: runs before .save() and .create()
 carSchema.pre("save", function (next) {
-  this.slug = slugify(`${this.companyName} ${this.name}`, { lower: true });
+  this.slug = slugify(this.name, { lower: true });
   next();
 });
 
@@ -45,10 +46,7 @@ carSchema.pre(/^find/, function (next) {
 });
 
 carSchema.statics.addToCompany = async function (companyName, carId) {
-  const company = await Company.findOne({
-    slug: slugify(companyName, { lower: true }),
-  });
-  await Company.findByIdAndUpdate(company._id, {
+  await Company.findByIdAndUpdate(companyName, {
     $push: { cars: carId },
   });
 };

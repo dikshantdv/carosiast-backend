@@ -5,13 +5,13 @@ const showroomSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "A Company must have a name"],
+      required: [true, "A Showroom must have a name"],
       unique: true,
       trim: true,
       maxlength: [40, "A car name must have less or equal then 40 characters"],
       minlength: [1, "A car name must have more or equal then 1 characters"],
     },
-    Company: {
+    company: {
       type: mongoose.Schema.ObjectId,
       ref: "Company",
     },

@@ -4,21 +4,7 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
 exports.getAllCompanies = catchAsync(async (req, res, next) => {
-  // To allow for nested GET reviews on tour (hack)
-
-  let query = Company.find();
-  // query = query.populate({
-  // path: "showrooms",
-  // select: "name price",
-  // match: queryStr,
-  // });
-  const features = new APIFeatures(query, req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  let doc = await features.query;
-  //   doc = doc.filter((car) => car.variants.length > 0);
+  let doc = await Company.find();
 
   res.status(200).json({
     status: "success",

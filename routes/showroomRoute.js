@@ -7,7 +7,7 @@ router.use("/:carName/variants", variantRouter);
 
 router
   .route("/")
-  .get(showroomController.getAllShowrooms)
+  .get(showroomController.setCompanyId, showroomController.getAllShowrooms)
   .post(showroomController.setCompanyId, showroomController.createShowroom);
 
 router
