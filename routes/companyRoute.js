@@ -4,8 +4,8 @@ const showroomRouter = require("../routes/showroomRoute");
 const carRouter = require("./carRoute");
 
 const router = express.Router();
-router.use("/:companyName/showrooms", showroomRouter);
-router.use("/:companyName/cars", carRouter);
+router.use("/:companyId/showrooms", showroomRouter);
+router.use("/:companyId/cars", carRouter);
 
 router
   .route("/")

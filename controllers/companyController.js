@@ -1,22 +1,27 @@
+const slugify = require("slugify");
 const Company = require("../models/companyModel");
-const APIFeatures = require("../utils/apiFeatures");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
 exports.getAllCompanies = catchAsync(async (req, res, next) => {
-  let doc = await Company.find();
-
+  let companies = await Company.find();
+  if (!companies) {
+    return next(new AppError("No companies found", 404));
+  }
   res.status(200).json({
     status: "success",
-    results: doc.length,
+    results: companies.length,
     data: {
-      data: doc,
+      data: companies,
     },
   });
 });
 
 exports.createCompany = catchAsync(async (req, res, next) => {
-  const newCompany = await Company.create(req.body);
+  const newCompany = await Company.create({
+    ...req.body,
+    _id: slugify(req.body.name, { lower: true }),
+  });
 
   res.status(201).json({
     status: "success",
@@ -27,7 +32,7 @@ exports.createCompany = catchAsync(async (req, res, next) => {
 });
 
 exports.getOneCompany = catchAsync(async (req, res, next) => {
-  const company = await Company.find({ slug: req.params.companyName }).populate(
+  const company = await Company.findById(req.params.companyName).populate(
     "cars"
   );
   //   .populate({

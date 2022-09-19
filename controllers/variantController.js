@@ -1,23 +1,37 @@
 const Variant = require("../models/variantModel");
-const Car = require("../models/carModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const APIFeatures = require("../utils/apiFeatures");
+const slugify = require("slugify");
 
-exports.setCarId = catchAsync(async (req, res, next) => {
-  if (req.params.carName) {
-    const car = await Car.findOne({ slug: req.params.carName }).select("-__v");
-    // Allow nested routes
-    if (!req.body.car) {
-      req.query.car = car._id;
-      req.body.fullCar = car;
-    }
-  }
-  next();
+exports.getAllVariant = catchAsync(async (req, res, next) => {
+  filter = {};
+  if (req.query.carId) filter = { car: req.query.carId };
+  let query = Variant.find(filter);
+
+  // 1B) Advanced filtering
+  const features = new APIFeatures(query, req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  let doc = await features.query;
+
+  res.status(200).json({
+    status: "success",
+    results: doc.length,
+    variants: doc,
+  });
 });
 
 exports.createVariant = catchAsync(async (req, res, next) => {
-  body = { ...req.body, car: req.query.car };
+  body = {
+    ...req.body,
+    car: req.params.carId,
+    _id: slugify(`${req.params.carId} ${req.body.name} ${req.body.fuel}`, {
+      lower: true,
+    }),
+  };
   const newCar = await Variant.create(body);
 
   res.status(201).json({
@@ -29,10 +43,7 @@ exports.createVariant = catchAsync(async (req, res, next) => {
 });
 
 exports.getOneVariant = catchAsync(async (req, res, next) => {
-  const variant = await Variant.findOne({
-    slug: req.params.variantName,
-    car: req.query.car,
-  });
+  const variant = await Variant.findById(req.params.variantId);
 
   if (!variant) {
     return next(new AppError("No variant found with that name", 404));
@@ -40,9 +51,6 @@ exports.getOneVariant = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
-    data: {
-      variant,
-      car: req.body.fullCar,
-    },
+    variant,
   });
 });

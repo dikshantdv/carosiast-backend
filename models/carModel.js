@@ -4,6 +4,7 @@ const Company = require("./companyModel");
 
 const carSchema = new mongoose.Schema(
   {
+    _id: { type: String },
     name: {
       type: String,
       required: [true, "A Car must have a name"],
@@ -12,12 +13,11 @@ const carSchema = new mongoose.Schema(
       maxlength: [40, "A car name must have less or equal then 40 characters"],
       minlength: [1, "A car name must have more or equal then 1 characters"],
     },
-    companyName: {
-      type: mongoose.Schema.ObjectId,
+    company: {
+      type: String,
       ref: "Company",
       required: [true, "A car must have a company"],
     },
-    slug: String,
     minPrice: { type: Number, required: true, default: 0 },
     maxPrice: { type: Number, required: true, default: 0 },
   },
@@ -35,24 +35,20 @@ carSchema.virtual("variants", {
 });
 
 // DOCUMENT MIDDLEWARE: runs before .save() and .create()
-carSchema.pre("save", function (next) {
-  this.slug = slugify(this.name, { lower: true });
-  next();
-});
 
 carSchema.pre(/^find/, function (next) {
   this.select("-__v");
   next();
 });
 
-carSchema.statics.addToCompany = async function (companyName, carId) {
-  await Company.findByIdAndUpdate(companyName, {
+carSchema.statics.addToCompany = async function (company, carId) {
+  await Company.findByIdAndUpdate(company, {
     $push: { cars: carId },
   });
 };
 
 carSchema.post("save", function () {
-  this.constructor.addToCompany(this.companyName, this._id);
+  this.constructor.addToCompany(this.company, this._id);
 });
 
 const Car = mongoose.model("Car", carSchema);

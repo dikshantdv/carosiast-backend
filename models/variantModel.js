@@ -6,6 +6,7 @@ const { priceAbbr } = require("../utils/priceAbbr");
 
 const variantSchema = new mongoose.Schema(
   {
+    _id: { type: String },
     name: {
       type: String,
       required: [true, "A variant must have a name"],
@@ -20,13 +21,9 @@ const variantSchema = new mongoose.Schema(
       ],
     },
     car: {
-      type: mongoose.Schema.ObjectId,
+      type: String,
       ref: "Car",
       required: [true, "Variant must belong to a car."],
-    },
-    slug: {
-      type: String,
-      unique: true,
     },
     price: {
       type: Number,
@@ -76,11 +73,6 @@ variantSchema.statics.calcMinMaxPrice = async function (carId) {
 
 variantSchema.virtual("abbrPrice").get(function () {
   return priceAbbr(this.price);
-});
-
-variantSchema.pre("save", function (next) {
-  this.slug = slugify(`${this.name} ${this.fuel}`, { lower: true });
-  next();
 });
 
 variantSchema.pre(/^find/, function (next) {

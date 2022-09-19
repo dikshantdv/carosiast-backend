@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
-const slugify = require("slugify");
 
 const showroomSchema = new mongoose.Schema(
   {
+    _id: { type: String },
     name: {
       type: String,
       required: [true, "A Showroom must have a name"],
@@ -12,12 +12,10 @@ const showroomSchema = new mongoose.Schema(
       minlength: [1, "A car name must have more or equal then 1 characters"],
     },
     company: {
-      type: mongoose.Schema.ObjectId,
+      type: String,
       ref: "Company",
     },
-    slug: String,
     location: {
-      // GeoJSON
       type: {
         type: String,
         default: "Point",
@@ -31,12 +29,6 @@ const showroomSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
-
-showroomSchema.pre("save", function (next) {
-  this.slug = slugify(`${this.name}`, { lower: true });
-
-  next();
-});
 
 const Showroom = mongoose.model("Showroom", showroomSchema);
 

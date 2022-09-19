@@ -3,14 +3,9 @@ const carController = require("../controllers/carController");
 const variantRouter = require("../routes/variantRoute");
 
 const router = express.Router({ mergeParams: true });
-router.use("/:carName/variants", variantRouter);
+router.use("/:carId/variants", variantRouter);
 
-router
-  .route("/")
-  .get(carController.setCompanyId, carController.getAllCars)
-  .post(carController.setCompanyId, carController.createCar);
-router
-  .route("/:carName")
-  .get(carController.setCompanyId, carController.getOneCar);
+router.route("/").get(carController.getAllCars).post(carController.createCar);
+router.route("/:carId").get(carController.getOneCar);
 
 module.exports = router;

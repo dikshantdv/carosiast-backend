@@ -2,43 +2,31 @@ const Showroom = require("../models/showroomModel");
 const Company = require("../models/companyModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
-const APIFeatures = require("../utils/apiFeatures");
-
-exports.setCompanyId = catchAsync(async (req, res, next) => {
-  if (req.params.companyName) {
-    const company = await Company.findOne({
-      slug: req.params.companyName,
-    }).select("-__v");
-    // Allow nested routes
-    if (!req.body.company) {
-      req.query.company = company._id;
-      req.body.fullCompany = company;
-    }
-  }
-  next();
-});
+const slugify = require("slugify");
 
 exports.getAllShowrooms = catchAsync(async (req, res, next) => {
-  let query = Showroom.find({ company: req.query.company });
-  const features = new APIFeatures(query, req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  const doc = await features.query;
+  const showrooms = await Showroom.find({ company: req.params.companyId });
+  if (showrooms.length === 0) {
+    const company = Company.findById(req.params.companyId);
+    if (!company) {
+      return next(new AppError("No company found with that name", 404));
+    } else {
+      return next(new AppError("No showroom found for this company", 404));
+    }
+  }
   res.status(200).json({
     status: "success",
-    results: doc.length,
-    data: {
-      showrooms: doc,
-      company: req.body.fullCompany,
-    },
+    results: showrooms.length,
+    showrooms,
   });
 });
 
 exports.createShowroom = catchAsync(async (req, res, next) => {
-  body = { ...req.body };
-  if (req.query.company) body = { ...req.body, Company: req.query.company };
+  body = {
+    ...req.body,
+    company: req.params.companyId,
+    _id: slugify(`${req.params.companyId} ${req.body.name}`, { lower: true }),
+  };
   const newShowroom = await Showroom.create(body);
 
   res.status(201).json({
@@ -50,10 +38,7 @@ exports.createShowroom = catchAsync(async (req, res, next) => {
 });
 
 exports.getOneShowroom = catchAsync(async (req, res, next) => {
-  const showroom = await Showroom.findOne({
-    slug: req.params.companyName,
-    company: req.query.company,
-  });
+  const showroom = await Showroom.findById(req.params.showroomId);
 
   if (!showroom) {
     return next(new AppError("No showroom found with that name", 404));
@@ -80,15 +65,18 @@ exports.getShowroomsWithin = catchAsync(async (req, res, next) => {
       )
     );
   }
-  const Showrooms = await Showroom.find({
-    company: req.query.company,
+  const showrooms = await Showroom.find({
+    company: req.params.companyId,
     location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
   });
+
+  if (!showrooms) {
+    return next(new AppError(`No showroom found within ${distance} KMs`, 404));
+  }
+
   res.status(200).json({
     status: "success",
-    results: Showrooms.length,
-    data: {
-      data: Showrooms,
-    },
+    results: showrooms.length,
+    showrooms,
   });
 });

@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
-const slugify = require("slugify");
 
 const companySchema = new mongoose.Schema(
   {
+    _id: { type: String },
     name: {
       type: String,
       required: [true, "A Company must have a name"],
@@ -18,28 +18,15 @@ const companySchema = new mongoose.Schema(
       ],
     },
     cars: {
-      type: mongoose.Schema.ObjectId,
+      type: String,
       ref: "Car",
     },
-    slug: String,
   },
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
 );
-
-companySchema.pre("save", function (next) {
-  this.slug = slugify(`${this.name}`, { lower: true });
-  console.log(this);
-  next();
-});
-
-// companySchema.virtual("showrooms", {
-//   ref: "Showroom",
-//   foreignField: "company",
-//   localField: "_id",
-// });
 
 const Company = mongoose.model("Companys", companySchema);
 

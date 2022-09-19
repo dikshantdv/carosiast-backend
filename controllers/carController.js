@@ -1,30 +1,13 @@
+const slugify = require("slugify");
 const Car = require("../models/carModel");
 const Company = require("../models/companyModel");
 const APIFeatures = require("../utils/apiFeatures");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
-exports.setCompanyId = catchAsync(async (req, res, next) => {
-  if (req.params.companyName) {
-    const company = await Company.findOne({
-      slug: req.params.companyName,
-    }).select("-__v");
-    if (!company) {
-      return next(new AppError("No company found with that name", 404));
-    }
-
-    if (!req.body.companyName) {
-      // Allow nested routes
-      req.query.companyName = company._id;
-      req.body.fullCompany = company;
-    }
-  }
-  next();
-});
-
 exports.getAllCars = catchAsync(async (req, res, next) => {
   filter = {};
-  if (req.query.companyName) filter = { companyName: req.query.companyName };
+  if (req.query.companyId) filter = { company: req.query.companyId };
   let query = Car.find(filter);
   let variantFilter = {};
   const excludedFields = ["price", "mileage", "transmission", "fuel"];
@@ -38,7 +21,6 @@ exports.getAllCars = catchAsync(async (req, res, next) => {
   let queryStr = JSON.stringify(variantFilter);
   queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
   queryStr = JSON.parse(queryStr);
-  console.log(queryStr);
   query = query.populate({
     path: "variants",
     select: "name price",
@@ -55,16 +37,15 @@ exports.getAllCars = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     results: doc.length,
-    data: {
-      data: doc,
-    },
+    cars: doc,
   });
 });
 
 exports.createCar = catchAsync(async (req, res, next) => {
   const newCar = await Car.create({
     ...req.body,
-    companyName: req.query.companyName,
+    company: req.params.companyId,
+    _id: slugify(`${req.params.companyId} ${req.body.name}`, { lower: true }),
   });
 
   res.status(201).json({
@@ -76,7 +57,7 @@ exports.createCar = catchAsync(async (req, res, next) => {
 });
 
 exports.getOneCar = catchAsync(async (req, res, next) => {
-  const car = await Car.find({ slug: req.params.carName }).populate({
+  const car = await Car.findById(req.params.carId).populate({
     path: "variants",
     select: "name price abbrPrice fuel -_id -__v -car",
   });
