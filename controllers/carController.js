@@ -1,12 +1,13 @@
 const slugify = require("slugify");
 const Car = require("../models/carModel");
 const Company = require("../models/companyModel");
+const Search = require("../models/searchModel");
 const APIFeatures = require("../utils/apiFeatures");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
 exports.getAllCars = catchAsync(async (req, res, next) => {
-  filter = {};
+  filter = { company: req.params.companyId };
   if (req.query.companyId) filter = { company: req.query.companyId };
   let query = Car.find(filter);
   let variantFilter = {};
@@ -32,8 +33,10 @@ exports.getAllCars = catchAsync(async (req, res, next) => {
     .limitFields()
     .paginate();
   let doc = await features.query;
-  // doc = doc.filter((car) => car.variants.length > 0);
-
+  doc = doc.filter((car) => car.variants.length > 0);
+  if (doc.length === 0) {
+    return next(new AppError("No cars found", 404));
+  }
   res.status(200).json({
     status: "success",
     results: doc.length,
@@ -65,7 +68,19 @@ exports.getOneCar = catchAsync(async (req, res, next) => {
   if (!car) {
     return next(new AppError("No car found with that name", 404));
   }
+  await Search.create({ name: req.params.carId });
 
+  const search = await Search.aggregate([
+    {
+      $group: {
+        _id: "$name",
+        totalSearches: { $sum: 1 },
+      },
+    },
+    { $sort: { totalSearches: -1 } },
+    { $limit: 3 },
+  ]);
+  console.log(search);
   res.status(200).json({
     status: "success",
     data: {
