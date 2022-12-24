@@ -13,11 +13,13 @@ const carSchema = new mongoose.Schema(
       maxlength: [40, "A car name must have less or equal then 40 characters"],
       minlength: [1, "A car name must have more or equal then 1 characters"],
     },
+    category: { type: String, required: [true, "A car must have a category"] },
     company: {
       type: String,
       ref: "Company",
       required: [true, "A car must have a company"],
     },
+    images: [{ type: String, required: true }],
     minPrice: { type: Number, required: true, default: 0 },
     maxPrice: { type: Number, required: true, default: 0 },
   },

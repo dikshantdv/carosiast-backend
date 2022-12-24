@@ -7,8 +7,7 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
 exports.getAllCars = catchAsync(async (req, res, next) => {
-  filter = { company: req.params.companyId };
-  if (req.query.companyId) filter = { company: req.query.companyId };
+  filter = { company: req.query.company };
   let query = Car.find(filter);
   let variantFilter = {};
   const excludedFields = ["price", "mileage", "transmission", "fuel"];
@@ -45,10 +44,12 @@ exports.getAllCars = catchAsync(async (req, res, next) => {
 });
 
 exports.createCar = catchAsync(async (req, res, next) => {
+  if (req.params.companyId) {
+    req.body.company = req.params.companyId;
+  }
   const newCar = await Car.create({
     ...req.body,
-    company: req.params.companyId,
-    _id: slugify(`${req.params.companyId} ${req.body.name}`, { lower: true }),
+    _id: slugify(`${req.body.company} ${req.body.name}`, { lower: true }),
   });
 
   res.status(201).json({
@@ -78,7 +79,7 @@ exports.getOneCar = catchAsync(async (req, res, next) => {
       },
     },
     { $sort: { totalSearches: -1 } },
-    { $limit: 3 },
+    { $limit: 5 },
   ]);
   console.log(search);
   res.status(200).json({

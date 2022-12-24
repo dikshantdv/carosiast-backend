@@ -35,10 +35,10 @@ exports.getOneCompany = catchAsync(async (req, res, next) => {
   const company = await Company.findById(req.params.companyName).populate(
     "cars"
   );
-  //   .populate({
-  //     path: "variants",
-  //     select: "name price abbrPrice fuel -_id -__v -car",
-  //   });
+  // .populate({
+  //   path: "variants",
+  //   select: "name price abbrPrice fuel -_id -__v -car",
+  // });
 
   if (!company) {
     return next(new AppError("No company found with that name", 404));
