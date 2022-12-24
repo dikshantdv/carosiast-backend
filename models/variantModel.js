@@ -29,9 +29,17 @@ const variantSchema = new mongoose.Schema(
       type: Number,
       required: [true, "A variant must have a price"],
     },
+    mileage: {
+      type: Number,
+      required: [true, "A variant must have a mileage"],
+    },
     fuel: {
       type: String,
       required: [true, "Fuel is required"],
+    },
+    transmission: {
+      type: String,
+      required: [true, "transmission is required"],
     },
   },
   {

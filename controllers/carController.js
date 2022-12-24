@@ -7,8 +7,7 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
 exports.getAllCars = catchAsync(async (req, res, next) => {
-  filter = { company: req.query.company };
-  let query = Car.find(filter);
+  let query = Car.find(req.query);
   let variantFilter = {};
   const excludedFields = ["price", "mileage", "transmission", "fuel"];
   excludedFields.forEach((el) => {
@@ -23,7 +22,7 @@ exports.getAllCars = catchAsync(async (req, res, next) => {
   queryStr = JSON.parse(queryStr);
   query = query.populate({
     path: "variants",
-    select: "name price",
+    // select: "name price fuel transmission",
     match: queryStr,
   });
   const features = new APIFeatures(query, req.query)

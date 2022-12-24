@@ -28,9 +28,12 @@ exports.createVariant = catchAsync(async (req, res, next) => {
   body = {
     ...req.body,
     car: req.params.carId,
-    _id: slugify(`${req.params.carId} ${req.body.name} ${req.body.fuel}`, {
-      lower: true,
-    }),
+    _id: slugify(
+      `${req.params.carId} ${req.body.name} ${req.body.fuel} ${req.body.transmission}`,
+      {
+        lower: true,
+      }
+    ),
   };
   const newCar = await Variant.create(body);
 
