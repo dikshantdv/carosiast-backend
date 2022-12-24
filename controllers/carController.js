@@ -62,7 +62,7 @@ exports.createCar = catchAsync(async (req, res, next) => {
 exports.getOneCar = catchAsync(async (req, res, next) => {
   const car = await Car.findById(req.params.carId).populate({
     path: "variants",
-    select: "name price abbrPrice fuel -_id -__v -car",
+    select: "name price abbrPrice fuel transmission -_id -__v -car",
   });
 
   if (!car) {
