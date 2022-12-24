@@ -83,8 +83,6 @@ exports.getOneCar = catchAsync(async (req, res, next) => {
   console.log(search);
   res.status(200).json({
     status: "success",
-    data: {
-      data: car,
-    },
+    car,
   });
 });
