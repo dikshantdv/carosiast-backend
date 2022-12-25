@@ -102,3 +102,14 @@ exports.getLatestCars = catchAsync(async (req, res, next) => {
     cars,
   });
 });
+
+exports.getSearchResults = catchAsync(async (req, res, next) => {
+  const cars = await Car.find({
+    name: { $regex: new RegExp("^" + req.params.keyword), $options: "i" },
+  }).limit(5);
+
+  res.status(200).json({
+    status: "success",
+    cars,
+  });
+});
