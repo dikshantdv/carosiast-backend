@@ -70,6 +70,13 @@ exports.getOneCar = catchAsync(async (req, res, next) => {
   }
   await Search.create({ name: req.params.carId });
 
+  res.status(200).json({
+    status: "success",
+    car,
+  });
+});
+
+exports.getTrendingCars = catchAsync(async (req, res, next) => {
   const search = await Search.aggregate([
     {
       $group: {
@@ -80,9 +87,18 @@ exports.getOneCar = catchAsync(async (req, res, next) => {
     { $sort: { totalSearches: -1 } },
     { $limit: 5 },
   ]);
-  console.log(search);
+  const cars = await Car.find({ $in: search });
+
   res.status(200).json({
     status: "success",
-    car,
+    cars,
+  });
+});
+exports.getLatestCars = catchAsync(async (req, res, next) => {
+  const cars = await Car.find().sort({ updatedAt: 1 }).limit(5);
+
+  res.status(200).json({
+    status: "success",
+    cars,
   });
 });
