@@ -1,6 +1,5 @@
 const express = require("express");
 const showroomController = require("../controllers/showroomController");
-const variantRouter = require("../routes/variantRoute");
 
 const router = express.Router({ mergeParams: true });
 

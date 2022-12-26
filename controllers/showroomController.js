@@ -54,7 +54,7 @@ exports.getOneShowroom = catchAsync(async (req, res, next) => {
 });
 
 exports.getShowroomsWithin = catchAsync(async (req, res, next) => {
-  const { distance, latlng } = req.params;
+  const { distance, latlng, companyId } = req.params;
   const [lat, lng] = latlng.split(",");
   const radius = distance / 6378.1;
   if (!lat || !lng) {
@@ -66,7 +66,7 @@ exports.getShowroomsWithin = catchAsync(async (req, res, next) => {
     );
   }
   const showrooms = await Showroom.find({
-    company: req.params.companyId,
+    company: companyId,
     location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
   });
 

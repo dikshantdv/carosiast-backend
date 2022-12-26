@@ -23,6 +23,10 @@ const showroomSchema = new mongoose.Schema(
       },
       coordinates: [Number],
     },
+    link: {
+      type: String,
+      required: true,
+    },
   },
   {
     toJSON: { virtuals: true },
